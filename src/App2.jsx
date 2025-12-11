@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import zeroImage from './assets/images/zeroImage.png';
 import twoImage from './assets/images/twoImage.png';
 import fourImage from './assets/images/fourImage.png';
-import lotteryBg from './assets/images/lotteryBg.jpg';
+import lotteryBg from './assets/images/santa2.jpg';
 import santa from './assets/images/santa.png';
 
 // List of symbols used in reels
@@ -209,21 +209,21 @@ const play = () => {
               <div style={styles.infoLabel}>BET</div>
               {/* <div style={styles.infoValue}>{bet}</div> */}
              <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-  <input
-    type="number"
-    value={bet}
-    onChange={(e) => {
-      const value = Number(e.target.value);
-      // Allow any number >= 0
-      if (!isNaN(value) && value >= 0) {
-        setBet(value);
-      }
-    }}
-    style={styles.betInput}
-    disabled={isPlaying}
-  />
-  <span style={{ color: "#FFD700", fontWeight: "bold" }}>Credits</span>
-</div>
+                <input
+                  type="number"
+                  value={bet}
+                  onChange={(e) => {
+                    const value = Number(e.target.value);
+                    // Allow any number >= 0
+                    if (!isNaN(value) && value >= 0) {
+                      setBet(value);
+                    }
+                  }}
+                  style={styles.betInput}
+                  disabled={isPlaying}
+                />
+                <span style={{ color: "#FFD700", fontWeight: "bold" }}>Credits</span>
+             </div>
 
 
             </div>
