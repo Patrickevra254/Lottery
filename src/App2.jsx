@@ -14,9 +14,9 @@ const isImage = (symbol) => {
   return (
     typeof symbol === "string" &&
     (symbol.endsWith(".png") ||
-     symbol.endsWith(".jpg") ||
-     symbol.endsWith(".jpeg") ||
-     symbol.startsWith("http"))
+      symbol.endsWith(".jpg") ||
+      symbol.endsWith(".jpeg") ||
+      symbol.startsWith("http"))
   );
 };
 
@@ -46,7 +46,7 @@ const Confetti = () => {
             width: `${piece.size}px`,
             height: `${piece.size}px`,
             transform: `rotate(${piece.rotation}deg)`,
-            animationDuration: `${piece.animationDuration}s`, // continuous fall
+            animationDuration: `${piece.animationDuration}s`,
           }}
         />
       ))}
@@ -73,7 +73,6 @@ const Reel = ({ spinning, result, delay }) => {
   };
 
   return (
-    
     <div style={styles.reelContainer}>
       <div style={styles.reelBox}>
         {/* Reel strip that spins */}
@@ -110,25 +109,22 @@ const App2 = () => {
   const [results, setResults] = useState([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [credits, setCredits] = useState(1000);
-  const [bet, setBet] = useState(100);
+  const [bet, setBet] = useState(0); // Start at 0 to force user to buy first
   const [lastWin, setLastWin] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(""); // For displaying errors
+  const [errorMessage, setErrorMessage] = useState(""); 
+  const [spinReady, setSpinReady] = useState(false); // Controls if SPIN button is enabled
 
-  // Handle spinning logic
-  // const play = () => {
-  //   if (credits < bet) {
-  //     alert("Not enough credits!");
-  //     return;
-  //   }
-
-  // Updated play function
-const play = () => {
-  if (credits < bet) {
-    setErrorMessage("❌ Not enough credits!");
-    setTimeout(() => setErrorMessage(""), 3000); // Clear message after 3 sec
-    return;
-  }
+  // ------------------------
+  // Play Function (Spin Reels)
+  // ------------------------
+  const play = () => {
+    // Deduct bet from credits
+    if (credits < bet) {
+      setErrorMessage("❌ Not enough credits!");
+      setTimeout(() => setErrorMessage(""), 3000);
+      return;
+    }
 
     setIsPlaying(true);
     setLastWin(0);
@@ -151,18 +147,19 @@ const play = () => {
     setTimeout(() => {
       setSpinning([false, false, false]);
       setIsPlaying(false);
+      setSpinReady(false); // Auto-disable spin after play
 
-      // Check for jackpot
+      // Check for jackpot combination
       if (final[0] === fourImage && final[1] === zeroImage && final[2] === twoImage) {
         const winAmount = bet * 10;
         setCredits(prev => prev + winAmount);
         setLastWin(winAmount);
-        setShowConfetti(true); // Confetti appears and stays
+        setShowConfetti(true); 
       }
     }, 3000);
   };
 
-  // Determine if the player won
+  // Determine if player won (for display banner)
   const isWinner =
     results.length === 3 &&
     results[0] === fourImage &&
@@ -174,7 +171,7 @@ const play = () => {
     <div style={styles.page}>
       <div style={styles.backgroundLayer}></div>
 
-      {/* Display confetti if winning */}
+      {/* Confetti display */}
       {showConfetti && <Confetti />}
 
       {/* Header */}
@@ -182,57 +179,83 @@ const play = () => {
         <h2 style={styles.headerTitle}>Are You Ready To Be A Winner?</h2>
       </div>
 
+      {/* Top Buttons */}
+      <div style={styles.topButtons}>
+        <button style={styles.walletButton}  onClick={() => alert("Connect Wallet!")}>
+          Connect Wallet
+        </button>
+        <button style={styles.walletButton} onClick={() => alert("Withdraw!")}>
+          Withdraw
+        </button>
+      </div>
 
-<div style={styles.topButtons}>
-  <button style={styles.walletButton}  onClick={() => alert("Connect Wallet!")}>
-    Connect Wallet
-  </button>
-  <button style={styles.walletButton} onClick={() => alert("Withdraw!")}>
-    Withdraw
-  </button>
-</div>
-
-{errorMessage && <div style={styles.errorMessage}>{errorMessage}</div>}
-
+      {/* Error Message */}
+      {errorMessage && <div style={styles.errorMessage}>{errorMessage}</div>}
 
       {/* Slot machine container */}
       <div style={styles.container}>
         <div style={styles.slotMachine}>
 
-          {/* Top panel with credits, bet, wins */}
+          {/* Top panel with credits, buy spin, and wins */}
           <div style={styles.displayPanel}>
+
+            {/* CREDITS DISPLAY */}
             <div style={styles.infoBox}>
               <div style={styles.infoLabel}>CREDITS</div>
               <div style={styles.infoValue}>{credits.toLocaleString()}</div>
             </div>
+
+            {/* BUY SPIN SECTION */}
             <div style={styles.infoBox}>
-              <div style={styles.infoLabel}>BET</div>
-              {/* <div style={styles.infoValue}>{bet}</div> */}
-             <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+              <div style={styles.infoLabel}>BUY SPIN</div>
+              <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
                 <input
                   type="number"
                   value={bet}
                   onChange={(e) => {
                     const value = Number(e.target.value);
-                    // Allow any number >= 0
                     if (!isNaN(value) && value >= 0) {
                       setBet(value);
+                      setSpinReady(false); // Disable spin if user edits amount again
                     }
                   }}
                   style={styles.betInput}
                   disabled={isPlaying}
                 />
-                <span style={{ color: "#FFD700", fontWeight: "bold" }}>Credits</span>
-             </div>
 
-
+                {/* BUY BUTTON */}
+                <button
+                  onClick={() => {
+                    if (bet > 0) {
+                      setSpinReady(true); // Enable spin
+                    } else {
+                      setSpinReady(false);
+                    }
+                  }}
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: "8px",
+                    background: "#FFD700",
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                    border: "none",
+                    color: "#000"
+                  }}
+                  disabled={isPlaying}
+                >
+                  BUY
+                </button>
+              </div>
             </div>
+
+            {/* WINS DISPLAY */}
             <div style={styles.infoBox}>
               <div style={styles.infoLabel}>WINS</div>
               <div style={{...styles.infoValue, color: lastWin > 0 ? '#FFD700' : '#FFF'}}>
                 {lastWin.toLocaleString()}
               </div>
             </div>
+
           </div>
 
           {/* Title */}
@@ -247,14 +270,14 @@ const play = () => {
             </div>
           </div>
 
-          {/* Winner banner */}
+          {/* Winner Banner */}
           {isWinner && (
             <div style={styles.winnerBanner}>
               🎉 JACKPOT! YOU WIN {lastWin}! 🎉
             </div>
           )}
 
-          {/* Control buttons */}
+          {/* Control Buttons */}
           <div style={styles.controlPanel}>
             <button
               onClick={() => setBet(Math.max(10, bet - 50))}
@@ -264,10 +287,11 @@ const play = () => {
               BET -
             </button>
 
+            {/* SPIN BUTTON */}
             <button
               onClick={play}
-              style={{...styles.spinButton, opacity: isPlaying ? 0.6 : 1}}
-              disabled={isPlaying}
+              style={{...styles.spinButton, opacity: (!spinReady || isPlaying) ? 0.6 : 1}}
+              disabled={!spinReady || isPlaying}
             >
               {isPlaying ? "SPINNING..." : "SPIN"}
             </button>
@@ -284,7 +308,7 @@ const play = () => {
         </div>
       </div>
 
-      {/* CSS animations */}
+      {/* CSS Animations */}
       <style>
         {`
           @keyframes spin {
@@ -309,25 +333,21 @@ const styles = {
   page: {
     height: "100vh",
     width: "100vw",
-    // background: "#000",
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
     overflow: "hidden", 
   },
-
   headerSection: {
     padding: "5px 0",
   },
-
   headerTitle: {
     textAlign: "center",
     color: "#FFD700",
     fontSize: "clamp(1rem, 3vw, 1.6rem)",
     marginTop: "5px",
   },
-
   container: {
     flex: 1,
     width: "100%",
@@ -336,7 +356,6 @@ const styles = {
     alignItems: "center",
     overflow: "hidden",
   },
-
   slotMachine: {
     background: "linear-gradient(180deg, #1a1a2e 0%, #0f0f1e 100%)",
     borderRadius: "20px",
@@ -348,7 +367,6 @@ const styles = {
     overflow: "hidden",
     textAlign: "center",
   },
-
   displayPanel: {
     display: "flex",
     justifyContent: "space-around",
@@ -356,7 +374,6 @@ const styles = {
     gap: "10px",
     flexWrap: "wrap",
   },
-
   infoBox: {
     background: "#000",
     padding: "8px 12px",
@@ -365,25 +382,21 @@ const styles = {
     textAlign: "center",
     minWidth: "70px",
   },
-
   infoLabel: {
     color: "#FFD700",
     fontSize: "0.8rem",
     fontWeight: "bold",
   },
-
   infoValue: {
     color: "#FFF",
     fontSize: "1.2rem",
     fontWeight: "bold",
   },
-
   title: {
     fontSize: "1.5rem",
     color: "#FFD700",
     marginBottom: "10px",
   },
-
   reelsSection: {
     background: "#000",
     padding: "10px",
@@ -391,17 +404,14 @@ const styles = {
     border: "3px solid #FFD700",
     marginBottom: "10px",
   },
-
   reelsRow: {
     display: "flex",
     justifyContent: "center",
     gap: "10px",
   },
-
   reelContainer: {
     position: "relative",
   },
-
   reelBox: {
     width: "clamp(60px, 15vw, 110px)",
     height: "clamp(60px, 15vw, 110px)",
@@ -410,12 +420,10 @@ const styles = {
     overflow: "hidden",
     border: "3px solid #FFD700",
   },
-
   reelStrip: {
     display: "flex",
     flexDirection: "column",
   },
-
   symbol: {
     width: "100%",
     height: "clamp(60px, 15vw, 110px)",
@@ -424,7 +432,6 @@ const styles = {
     justifyContent: "center",
     background: "#0a0a0a",
   },
-
   finalNumber: {
     position: "absolute",
     top: 0,
@@ -436,13 +443,11 @@ const styles = {
     justifyContent: "center",
     alignItems: "center",
   },
-
   controlPanel: {
     display: "flex",
     gap: "10px",
     justifyContent: "center",
   },
-
   controlButton: {
     padding: "10px 15px",
     fontSize: "0.9rem",
@@ -451,12 +456,10 @@ const styles = {
     cursor: "pointer",
     border: "none",
   },
-
   betButton: {
     background: "linear-gradient(135deg, #4CAF50 0%, #45a049 100%)",
     color: "white",
   },
-
   spinButton: {
     padding: "12px 20px",
     fontSize: "1.2rem",
@@ -468,7 +471,6 @@ const styles = {
     cursor: "pointer",
     minWidth: "clamp(90px, 20vw, 150px)",
   },
-
   winnerBanner: {
     margin: "10px 0",
     padding: "10px",
@@ -477,8 +479,6 @@ const styles = {
     border: "2px solid #FFD700",
     borderRadius: "10px",
   },
-
-  // Confetti styles
   confettiContainer: {
     position: "fixed",
     top: 0,
@@ -489,67 +489,54 @@ const styles = {
     zIndex: 9999,
     overflow: "hidden",
   },
-
   confettiPiece: {
     position: "absolute",
     top: "-20px",
-    animation: "confettiFall linear infinite", // infinite animation
+    animation: "confettiFall linear infinite",
   },
-
   topButtons: {
-  width: "80%",
-  maxWidth: "600px",
-  display: "flex",
-  justifyContent: "space-between",
-  marginBottom: "10px",
-  
-},
-
-walletButton: {
-  padding: "10px 15px",
-  fontSize: "0.9rem",
-  borderRadius: "10px",
-  // background: "linear-gradient(135deg, #2196F3 0%, #1E88E5 100%)",
-  color: "#FFD700",
-  fontWeight: "bold",
-  cursor: "pointer",
-  border: "2px solid #FFD700",
-  
-},
-
-errorMessage: {
-  color: "#FF1744",
-  fontWeight: "bold",
-  marginBottom: "10px",
-  textAlign: "center",
-},
-
-betInput: {
-  width: "80px",
-  padding: "8px",
-  borderRadius: "8px",
-  border: "2px solid #FFD700",
-  textAlign: "center",
-  fontWeight: "bold",
-  fontSize: "1rem",
-},
-
-
-
-backgroundLayer: {
-  position: "absolute",
-  top: 0,
-  left: 0,
-  width: "100%",
-  height: "100%",
-  backgroundImage: `linear-gradient(rgba(75, 12, 12, 0.23), rgba(0,0,0,0.6)), url(${lotteryBg})`,
-  backgroundSize: "cover",
-  backgroundPosition: "center",
-  filter: "blur(8px)", // blur effect
-  zIndex: -1, // behind everything
-},
-
-
+    width: "80%",
+    maxWidth: "600px",
+    display: "flex",
+    justifyContent: "space-between",
+    marginBottom: "10px",
+  },
+  walletButton: {
+    padding: "10px 15px",
+    fontSize: "0.9rem",
+    borderRadius: "10px",
+    color: "#FFD700",
+    fontWeight: "bold",
+    cursor: "pointer",
+    border: "2px solid #FFD700",
+  },
+  errorMessage: {
+    color: "#FF1744",
+    fontWeight: "bold",
+    marginBottom: "10px",
+    textAlign: "center",
+  },
+  betInput: {
+    width: "80px",
+    padding: "8px",
+    borderRadius: "8px",
+    border: "2px solid #FFD700",
+    textAlign: "center",
+    fontWeight: "bold",
+    fontSize: "1rem",
+  },
+  backgroundLayer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundImage: `linear-gradient(rgba(75, 12, 12, 0.23), rgba(0,0,0,0.6)), url(${lotteryBg})`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    filter: "blur(8px)",
+    zIndex: -1,
+  },
 };
 
 export default App2;
